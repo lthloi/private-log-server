@@ -121,12 +121,14 @@ app.post("/api/logs", async (req: Request, res: Response) => {
       })
     }
 
-    // Lấy version từ logData
+    // Lấy version và appFeature từ logData
     const version = logData.loggerVersion || "unknown"
+    const appFeature = logData.appFeature || "unknown"
+    const appPage = logData.appPage || "unknown"
 
-    // Tạo tên file với version và timestamp
+    // Tạo tên file với version, appFeature và timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-    const fileName = `log-v${version}-${timestamp}.txt`
+    const fileName = `log-v${version}-${appPage}-${appFeature}-${timestamp}.txt`
     const filePath = path.join(STORAGE_DIR, fileName)
 
     // Chuyển đổi data thành string để lưu

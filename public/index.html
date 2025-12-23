@@ -1,424 +1,438 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Log Viewer</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    h1 {
-      color: white;
-      text-align: center;
-      margin-bottom: 15px;
-      font-size: 24px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    .controls {
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-bottom: 12px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background: #667eea;
-      color: white;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    
-    .btn:hover {
-      background: #5568d3;
-    }
-    
-    .btn-danger {
-      background: #dc3545;
-    }
-    
-    .btn-danger:hover {
-      background: #c82333;
-    }
-    
-    .delete-controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .delete-count-input {
-      width: 80px;
-      padding: 8px;
-      border: 2px solid #e0e0e0;
-      border-radius: 5px;
-      font-size: 13px;
-    }
-    
-    .delete-count-input:focus {
-      outline: none;
-      border-color: #dc3545;
-    }
-    
-    .storage-info {
-      margin-left: auto;
-      padding: 8px 12px;
-      background: #f0f0f0;
-      border-radius: 5px;
-      font-size: 13px;
-      color: #333;
-      font-weight: 500;
-    }
-    
-    .storage-info.low {
-      background: #fee;
-      color: #c33;
-    }
-    
-    .search-box {
-      flex: 1;
-      padding: 10px;
-      border: 2px solid #e0e0e0;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    
-    .search-box:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    
-    .content {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 20px;
-    }
-    
-    .log-list {
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    
-    .log-list h2 {
-      margin-bottom: 10px;
-      color: #333;
-      font-size: 1.2rem;
-    }
-    
-    .log-item {
-      padding: 8px;
-      margin-bottom: 6px;
-      background: #f5f5f5;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.3s;
-      border-left: 3px solid transparent;
-    }
-    
-    .log-item:hover {
-      background: #e8e8e8;
-      border-left-color: #667eea;
-    }
-    
-    .log-item.active {
-      background: #667eea;
-      color: white;
-      border-left-color: #764ba2;
-    }
-    
-    .log-item .filename {
-      font-size: 12px;
-      font-weight: bold;
-    }
-    
-    .log-item .time {
-      font-size: 10px;
-      opacity: 0.7;
-      margin-top: 3px;
-    }
-    
-    .log-viewer {
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    
-    .log-viewer h2 {
-      margin-bottom: 10px;
-      color: #333;
-      font-size: 1.2rem;
-    }
-    
-    .log-content {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 15px;
-      border-radius: 5px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    
-    .empty-state {
-      text-align: center;
-      color: #999;
-      padding: 40px;
-    }
-    
-    .loading {
-      text-align: center;
-      color: #667eea;
-      padding: 20px;
-    }
-    
-    .error {
-      background: #fee;
-      color: #c33;
-      padding: 15px;
-      border-radius: 5px;
-      border-left: 4px solid #c33;
-    }
-    
-    @media (max-width: 768px) {
-      .content {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>📋 Log Viewer</h1>
-    
-    <div class="controls">
-      <button class="btn" onclick="loadLogs()">🔄 Refresh</button>
-      <input type="text" class="search-box" id="searchBox" placeholder="Tìm kiếm log..." onkeyup="filterLogs()">
-      <div class="delete-controls">
-        <input type="number" class="delete-count-input" id="deleteCount" placeholder="Số lượng" min="1">
-        <button class="btn btn-danger" onclick="deleteLogs()">🗑️ Xóa</button>
-        <button class="btn btn-danger" onclick="deleteAllLogs()">🗑️ Xóa hết</button>
-      </div>
-      <div class="storage-info" id="storageInfo">Đang tải...</div>
-    </div>
-    
-    <div class="content">
-      <div class="log-list">
-        <h2>Danh sách Logs</h2>
-        <div id="logList">
-          <div class="loading">Đang tải...</div>
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      h1 {
+        color: white;
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 24px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 8px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background: #667eea;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+      }
+
+      .btn:hover {
+        background: #5568d3;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+      }
+
+      .btn-danger:hover {
+        background: #c82333;
+      }
+
+      .delete-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .delete-count-input {
+        width: 80px;
+        padding: 8px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 13px;
+      }
+
+      .delete-count-input:focus {
+        outline: none;
+        border-color: #dc3545;
+      }
+
+      .storage-info {
+        margin-left: auto;
+        padding: 8px 12px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        font-size: 13px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .storage-info.low {
+        background: #fee;
+        color: #c33;
+      }
+
+      .search-box {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .search-box:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 400px 1fr;
+        gap: 10px;
+      }
+
+      .log-list {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .log-list h2 {
+        margin-bottom: 10px;
+        color: #333;
+        font-size: 1.2rem;
+      }
+
+      .log-item {
+        padding: 8px;
+        margin-bottom: 6px;
+        background: #f5f5f5;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-left: 3px solid transparent;
+      }
+
+      .log-item:hover {
+        background: #e8e8e8;
+        border-left-color: #667eea;
+      }
+
+      .log-item.active {
+        background: #667eea;
+        color: white;
+        border-left-color: #764ba2;
+      }
+
+      .log-item .filename {
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .log-item .time {
+        font-size: 10px;
+        opacity: 0.7;
+        margin-top: 3px;
+      }
+
+      .log-viewer {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .log-viewer h2 {
+        margin-bottom: 10px;
+        color: #333;
+        font-size: 1.2rem;
+      }
+
+      .log-content {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #999;
+        padding: 40px;
+      }
+
+      .loading {
+        text-align: center;
+        color: #667eea;
+        padding: 20px;
+      }
+
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #c33;
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📋 Log Viewer</h1>
+
+      <div class="controls">
+        <button class="btn" onclick="loadLogs()">🔄 Refresh</button>
+        <input
+          type="text"
+          class="search-box"
+          id="searchBox"
+          placeholder="Tìm kiếm log..."
+          onkeyup="filterLogs()"
+        />
+        <div class="delete-controls">
+          <input
+            type="number"
+            class="delete-count-input"
+            id="deleteCount"
+            placeholder="Số lượng"
+            min="1"
+          />
+          <button class="btn btn-danger" onclick="deleteLogs()">🗑️ Xóa</button>
+          <button class="btn btn-danger" onclick="deleteAllLogs()">🗑️ Xóa hết</button>
         </div>
+        <div class="storage-info" id="storageInfo">Đang tải...</div>
       </div>
-      
-      <div class="log-viewer">
-        <h2>Nội dung Log</h2>
-        <div id="logViewer">
-          <div class="empty-state">
-            Chọn một file log để xem nội dung
+
+      <div class="content">
+        <div class="log-list">
+          <h2>Danh sách Logs</h2>
+          <div id="logList">
+            <div class="loading">Đang tải...</div>
+          </div>
+        </div>
+
+        <div class="log-viewer">
+          <h2>Nội dung Log</h2>
+          <div id="logViewer">
+            <div class="empty-state">Chọn một file log để xem nội dung</div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  
-  <script>
-    let allLogs = [];
-    let currentLog = null;
-    
-    async function loadStorageInfo() {
-      try {
-        const response = await fetch('/api/storage');
-        const data = await response.json();
-        
-        if (data.success) {
-          const storageInfoEl = document.getElementById('storageInfo');
-          const freeSpaceMB = data.freeSpace;
-          storageInfoEl.textContent = `Còn trống: ${freeSpaceMB} MB`;
-          
-          // Đổi màu nếu dung lượng thấp
-          if (freeSpaceMB < 10) {
-            storageInfoEl.classList.add('low');
-          } else {
-            storageInfoEl.classList.remove('low');
+
+    <script>
+      let allLogs = []
+      let currentLog = null
+
+      async function loadStorageInfo() {
+        try {
+          const response = await fetch("/api/storage")
+          const data = await response.json()
+
+          if (data.success) {
+            const storageInfoEl = document.getElementById("storageInfo")
+            const freeSpaceMB = data.freeSpace
+            storageInfoEl.textContent = `Còn trống: ${freeSpaceMB} MB`
+
+            // Đổi màu nếu dung lượng thấp
+            if (freeSpaceMB < 10) {
+              storageInfoEl.classList.add("low")
+            } else {
+              storageInfoEl.classList.remove("low")
+            }
           }
+        } catch (error) {
+          console.error("Error loading storage info:", error)
         }
-      } catch (error) {
-        console.error('Error loading storage info:', error);
       }
-    }
-    
-    async function loadLogs() {
-      try {
-        const response = await fetch('/api/logs');
-        const data = await response.json();
-        
-        if (data.success) {
-          allLogs = data.logs;
-          renderLogs(allLogs);
-        } else {
-          showError('Không thể tải danh sách logs');
+
+      async function loadLogs() {
+        try {
+          const response = await fetch("/api/logs")
+          const data = await response.json()
+
+          if (data.success) {
+            allLogs = data.logs
+            renderLogs(allLogs)
+          } else {
+            showError("Không thể tải danh sách logs")
+          }
+
+          // Load storage info
+          await loadStorageInfo()
+        } catch (error) {
+          showError("Lỗi kết nối: " + error.message)
         }
-        
-        // Load storage info
-        await loadStorageInfo();
-      } catch (error) {
-        showError('Lỗi kết nối: ' + error.message);
       }
-    }
-    
-    function renderLogs(logs) {
-      const listContainer = document.getElementById('logList');
-      
-      if (logs.length === 0) {
-        listContainer.innerHTML = '<div class="empty-state">Chưa có log nào</div>';
-        return;
-      }
-      
-      listContainer.innerHTML = logs.map(log => `
-        <div class="log-item ${currentLog === log.filename ? 'active' : ''}" 
+
+      function renderLogs(logs) {
+        const listContainer = document.getElementById("logList")
+
+        if (logs.length === 0) {
+          listContainer.innerHTML = '<div class="empty-state">Chưa có log nào</div>'
+          return
+        }
+
+        listContainer.innerHTML = logs
+          .map(
+            (log) => `
+        <div class="log-item ${currentLog === log.filename ? "active" : ""}" 
              onclick="viewLog('${log.filename}')">
           <div class="filename">${log.filename}</div>
           <div class="time">${formatDate(log.created)}</div>
         </div>
-      `).join('');
-    }
-    
-    function filterLogs() {
-      const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-      const filtered = allLogs.filter(log => 
-        log.filename.toLowerCase().includes(searchTerm)
-      );
-      renderLogs(filtered);
-    }
-    
-    async function viewLog(filename) {
-      currentLog = filename;
-      renderLogs(allLogs);
-      
-      const viewer = document.getElementById('logViewer');
-      viewer.innerHTML = '<div class="loading">Đang tải...</div>';
-      
-      try {
-        const response = await fetch(`/api/logs/${encodeURIComponent(filename)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          viewer.innerHTML = `
+      `
+          )
+          .join("")
+      }
+
+      function filterLogs() {
+        const searchTerm = document.getElementById("searchBox").value.toLowerCase()
+        const filtered = allLogs.filter((log) => log.filename.toLowerCase().includes(searchTerm))
+        renderLogs(filtered)
+      }
+
+      async function viewLog(filename) {
+        currentLog = filename
+        renderLogs(allLogs)
+
+        const viewer = document.getElementById("logViewer")
+        viewer.innerHTML = '<div class="loading">Đang tải...</div>'
+
+        try {
+          const response = await fetch(`/api/logs/${encodeURIComponent(filename)}`)
+          const data = await response.json()
+
+          if (data.success) {
+            viewer.innerHTML = `
             <h2>${filename}</h2>
             <div class="log-content">${escapeHtml(data.content)}</div>
-          `;
-        } else {
-          showError('Không thể đọc file log');
+          `
+          } else {
+            showError("Không thể đọc file log")
+          }
+        } catch (error) {
+          showError("Lỗi kết nối: " + error.message)
         }
-      } catch (error) {
-        showError('Lỗi kết nối: ' + error.message);
       }
-    }
-    
-    function showError(message) {
-      const viewer = document.getElementById('logViewer');
-      viewer.innerHTML = `<div class="error">${message}</div>`;
-    }
-    
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleString('vi-VN');
-    }
-    
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-    
-    async function deleteLogs() {
-      const countInput = document.getElementById('deleteCount');
-      const count = parseInt(countInput.value);
-      
-      if (!count || count <= 0) {
-        alert('Vui lòng nhập số lượng log muốn xóa');
-        return;
+
+      function showError(message) {
+        const viewer = document.getElementById("logViewer")
+        viewer.innerHTML = `<div class="error">${message}</div>`
       }
-      
-      const confirmed = confirm(`Bạn có chắc muốn xóa ${count} log cũ nhất?`);
-      if (!confirmed) return;
-      
-      try {
-        const response = await fetch(`/api/logs?count=${count}`, {
-          method: 'DELETE',
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          alert(`Đã xóa ${data.deletedCount} log thành công!`);
-          countInput.value = '';
-          loadLogs();
-        } else {
-          alert('Lỗi: ' + data.message);
+
+      function formatDate(dateString) {
+        const date = new Date(dateString)
+        return date.toLocaleString("vi-VN")
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div")
+        div.textContent = text
+        return div.innerHTML
+      }
+
+      async function deleteLogs() {
+        const countInput = document.getElementById("deleteCount")
+        const count = parseInt(countInput.value)
+
+        if (!count || count <= 0) {
+          alert("Vui lòng nhập số lượng log muốn xóa")
+          return
         }
-      } catch (error) {
-        alert('Lỗi kết nối: ' + error.message);
-      }
-    }
-    
-    async function deleteAllLogs() {
-      const confirmed = confirm('Bạn có chắc muốn XÓA TẤT CẢ logs? Hành động này không thể hoàn tác!');
-      if (!confirmed) return;
-      
-      try {
-        const response = await fetch('/api/logs/all', {
-          method: 'DELETE',
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          alert(`Đã xóa tất cả logs (${data.deletedCount} file)!`);
-          loadLogs();
-        } else {
-          alert('Lỗi: ' + data.message);
+
+        const confirmed = confirm(`Bạn có chắc muốn xóa ${count} log cũ nhất?`)
+        if (!confirmed) return
+
+        try {
+          const response = await fetch(`/api/logs?count=${count}`, {
+            method: "DELETE",
+          })
+          const data = await response.json()
+
+          if (data.success) {
+            alert(`Đã xóa ${data.deletedCount} log thành công!`)
+            countInput.value = ""
+            loadLogs()
+          } else {
+            alert("Lỗi: " + data.message)
+          }
+        } catch (error) {
+          alert("Lỗi kết nối: " + error.message)
         }
-      } catch (error) {
-        alert('Lỗi kết nối: ' + error.message);
       }
-    }
-    
-    // Load logs khi trang được tải
-    loadLogs();
-    
-    // Auto refresh mỗi 30 giây
-    setInterval(loadLogs, 30000);
-  </script>
-</body>
+
+      async function deleteAllLogs() {
+        const confirmed = confirm(
+          "Bạn có chắc muốn XÓA TẤT CẢ logs? Hành động này không thể hoàn tác!"
+        )
+        if (!confirmed) return
+
+        try {
+          const response = await fetch("/api/logs/all", {
+            method: "DELETE",
+          })
+          const data = await response.json()
+
+          if (data.success) {
+            alert(`Đã xóa tất cả logs (${data.deletedCount} file)!`)
+            loadLogs()
+          } else {
+            alert("Lỗi: " + data.message)
+          }
+        } catch (error) {
+          alert("Lỗi kết nối: " + error.message)
+        }
+      }
+
+      // Load logs khi trang được tải
+      loadLogs()
+
+      // Auto refresh mỗi 30 giây
+      setInterval(loadLogs, 30000)
+    </script>
+  </body>
 </html>
